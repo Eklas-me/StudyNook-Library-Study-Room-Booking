@@ -506,3 +506,6 @@ async function run() {
   }
 }
 run().catch(console.dir);
+
+// Export the app for Vercel
+module.exports = app;
