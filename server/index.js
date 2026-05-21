@@ -216,6 +216,28 @@ async function run() {
     // STUDY ROOMS CRUD ROUTES
     // ============================
 
+    // Temporary route to seed demo rooms
+    app.get('/api/seed-rooms', async (req, res) => {
+      try {
+        const demoRooms = [
+          { name: "The Quiet Nook", description: "A perfectly silent corner for deep work.", image: "https://images.unsplash.com/photo-1544819231-5079a4ba5112?q=80&w=800", floor: "3rd Floor", capacity: 1, hourlyRate: 5.00, amenities: ["Wi-Fi", "Quiet Zone"], owner: "demo-system", bookingCount: 15, createdAt: new Date() },
+          { name: "Focus Hub Alpha", description: "Spacious room designed for small group study sessions.", image: "https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=800", floor: "2nd Floor", capacity: 4, hourlyRate: 15.00, amenities: ["Whiteboard", "Projector", "Wi-Fi"], owner: "demo-system", bookingCount: 42, createdAt: new Date() },
+          { name: "Executive Study Suite", description: "Premium study room with ergonomic chairs.", image: "https://images.unsplash.com/photo-1497215842964-222b430dc094?q=80&w=800", floor: "5th Floor", capacity: 2, hourlyRate: 25.00, amenities: ["Wi-Fi", "Air Conditioning"], owner: "demo-system", bookingCount: 8, createdAt: new Date() },
+          { name: "Group Collab Space", description: "Vibrant collaboration room with smart boards.", image: "https://images.unsplash.com/photo-1556761175-5973dc0f32d7?q=80&w=800", floor: "1st Floor", capacity: 6, hourlyRate: 18.00, amenities: ["Whiteboard", "Wi-Fi"], owner: "demo-system", bookingCount: 56, createdAt: new Date() },
+          { name: "Deep Work Corner", description: "Minimalist setup with no distractions.", image: "https://images.unsplash.com/photo-1524758631624-e2822e304c36?q=80&w=800", floor: "4th Floor", capacity: 1, hourlyRate: 8.00, amenities: ["Quiet Zone"], owner: "demo-system", bookingCount: 22, createdAt: new Date() },
+          { name: "Lounge Study Room", description: "A relaxed environment with comfortable sofas.", image: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=800", floor: "2nd Floor", capacity: 5, hourlyRate: 12.00, amenities: ["Wi-Fi", "Air Conditioning"], owner: "demo-system", bookingCount: 30, createdAt: new Date() },
+          { name: "Premium Brainstorm Room", description: "High-tech room with a massive interactive display.", image: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?q=80&w=800", floor: "5th Floor", capacity: 8, hourlyRate: 40.00, amenities: ["Projector", "Wi-Fi"], owner: "demo-system", bookingCount: 12, createdAt: new Date() },
+          { name: "Window View Nook", description: "Get inspired by the beautiful campus view.", image: "https://images.unsplash.com/photo-1501504905252-473c47e087f8?q=80&w=800", floor: "3rd Floor", capacity: 2, hourlyRate: 10.00, amenities: ["Wi-Fi", "Power Outlets"], owner: "demo-system", bookingCount: 65, createdAt: new Date() },
+          { name: "Creative Thinking Space", description: "A creatively designed room with colorful walls.", image: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=800", floor: "1st Floor", capacity: 4, hourlyRate: 16.00, amenities: ["Whiteboard", "Power Outlets"], owner: "demo-system", bookingCount: 28, createdAt: new Date() },
+          { name: "Zen Study Pod", description: "A specialized soundproof capsule for intense focus.", image: "https://images.unsplash.com/photo-1499914485622-a88fac536970?q=80&w=800", floor: "4th Floor", capacity: 1, hourlyRate: 12.00, amenities: ["Quiet Zone", "Air Conditioning"], owner: "demo-system", bookingCount: 45, createdAt: new Date() }
+        ];
+        const result = await roomsCollection.insertMany(demoRooms);
+        res.send({ message: 'Success', result });
+      } catch (error) {
+        res.status(500).send({ message: error.message });
+      }
+    });
+
     // 1. Get all rooms with search & filters
     app.get('/api/rooms', async (req, res) => {
       try {
