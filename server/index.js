@@ -21,7 +21,7 @@ app.use(cookieParser());
 // Custom middleware to verify Token
 const verifyToken = (req, res, next) => {
   const token = req.cookies?.token;
-  
+
   if (!token) {
     return res.status(401).send({ message: 'unauthorized access' });
   }
@@ -60,7 +60,7 @@ async function run() {
     // 1. Register User (Email/Password)
     app.post('/api/auth/register', async (req, res) => {
       const { name, email, photoURL, password } = req.body;
-      
+
       try {
         // Check if user already exists
         const existingUser = await usersCollection.findOne({ email });
@@ -91,7 +91,7 @@ async function run() {
     // 2. Login User (Email/Password)
     app.post('/api/auth/login', async (req, res) => {
       const { email, password } = req.body;
-      
+
       try {
         const user = await usersCollection.findOne({ email });
         if (!user) {
@@ -118,11 +118,11 @@ async function run() {
           maxAge: 7 * 24 * 60 * 60 * 1000
         });
 
-        res.send({ 
-          _id: user._id, 
-          name: user.name, 
-          email: user.email, 
-          photoURL: user.photoURL 
+        res.send({
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          photoURL: user.photoURL
         });
       } catch (error) {
         res.status(500).send({ message: 'Internal server error' });
@@ -137,15 +137,15 @@ async function run() {
         // Verify Google token
         const ticket = await googleClient.verifyIdToken({
           idToken: credential,
-          audience: process.env.VITE_GOOGLE_CLIENT_ID, 
+          audience: process.env.VITE_GOOGLE_CLIENT_ID,
         });
         const payload = ticket.getPayload();
-        
+
         const { email, name, picture } = payload;
 
         // Check if user exists in DB
         let user = await usersCollection.findOne({ email });
-        
+
         if (!user) {
           // Create new user if not exists
           const newUser = {
@@ -171,11 +171,11 @@ async function run() {
           maxAge: 7 * 24 * 60 * 60 * 1000
         });
 
-        res.send({ 
-          _id: user._id, 
-          name: user.name, 
-          email: user.email, 
-          photoURL: user.photoURL 
+        res.send({
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          photoURL: user.photoURL
         });
       } catch (error) {
         console.error(error);
@@ -201,11 +201,11 @@ async function run() {
           { _id: new ObjectId(req.user.id) },
           { projection: { password: 0 } } // Don't send password
         );
-        
+
         if (!user) {
           return res.status(404).send({ message: 'User not found' });
         }
-        
+
         res.send(user);
       } catch (error) {
         res.status(500).send({ message: 'Internal server error' });
@@ -216,7 +216,7 @@ async function run() {
     // STUDY ROOMS CRUD ROUTES
     // ============================
 
-    // 1. Get all rooms with search & filters
+    // 1. Get all rooms with search, filters, and pagination
     app.get('/api/rooms', async (req, res) => {
       try {
         const query = {};
@@ -248,8 +248,24 @@ async function run() {
           }
         }
 
-        const rooms = await roomsCollection.find(query).sort({ createdAt: -1 }).toArray();
-        res.send(rooms);
+        // Pagination parameters
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 9;
+        const skip = (page - 1) * limit;
+
+        // Get total count of matching documents
+        const total = await roomsCollection.countDocuments(query);
+        const totalPages = Math.ceil(total / limit);
+
+        // Fetch paginated results
+        const rooms = await roomsCollection
+          .find(query)
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limit)
+          .toArray();
+          
+        res.send({ rooms, total, totalPages, currentPage: page });
       } catch (error) {
         res.status(500).send({ message: 'Internal server error' });
       }
@@ -361,7 +377,7 @@ async function run() {
         if (room.owner !== req.user.id) {
           return res.status(403).send({ message: 'Forbidden access: You do not own this room' });
         }
-        
+
         await roomsCollection.deleteOne({ _id: new ObjectId(id) });
         res.send({ message: 'Room deleted successfully' });
       } catch (error) {
@@ -377,7 +393,7 @@ async function run() {
     app.post('/api/bookings', verifyToken, async (req, res) => {
       try {
         const { roomId, date, startTime, endTime, totalCost, specialNote } = req.body;
-        
+
         // Conflict check using $gte and $lte (prevent overlapping bookings)
         // Overlap condition: (startTime < existing.endTime) AND (endTime > existing.startTime)
         const conflict = await bookingsCollection.findOne({
@@ -507,5 +523,4 @@ async function run() {
 }
 run().catch(console.dir);
 
-// Export the app for Vercel
 module.exports = app;
